@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
-import { ChevronLeft, ChevronRight, Download, ImagePlus, Languages, Palette, RotateCcw, Type } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Download, ImagePlus, Languages, MoreHorizontal, Palette, RotateCcw, Type } from "lucide-react";
 import type { Language } from "@/types";
 import { monthNamesByLanguage } from "@/utils/calendar";
 
@@ -47,8 +48,33 @@ export function Toolbar({
   onExport,
   onClear
 }: ToolbarProps) {
+  const [moreOpen, setMoreOpen] = useState(false);
   const years = Array.from({ length: 15 }, (_, index) => new Date().getFullYear() - 7 + index);
   const monthNames = monthNamesByLanguage[language];
+
+  const secondaryActions = (
+    <>
+      <button onClick={onToggleSettings}>
+        <Palette size={18} />
+        {labels.style}
+      </button>
+      <button onClick={onExport}>
+        <Download size={18} />
+        {labels.export}
+      </button>
+      <button className="dangerButton" onClick={onClear}>
+        <RotateCcw size={18} />
+        {labels.clear}
+      </button>
+      <label className="languageControl" aria-label={labels.language}>
+        <Languages size={17} />
+        <select value={language} onChange={(event) => onLanguageChange(event.target.value as Language)}>
+          <option value="uk">UA</option>
+          <option value="en">EN</option>
+        </select>
+      </label>
+    </>
+  );
 
   return (
     <header className="toolbar" aria-label={labels.toolbar}>
@@ -84,25 +110,17 @@ export function Toolbar({
           <Type size={18} />
           {labels.text}
         </button>
-        <button onClick={onToggleSettings}>
-          <Palette size={18} />
-          {labels.style}
-        </button>
-        <button onClick={onExport}>
-          <Download size={18} />
-          {labels.export}
-        </button>
-        <button className="dangerButton" onClick={onClear}>
-          <RotateCcw size={18} />
-          {labels.clear}
-        </button>
-        <label className="languageControl" aria-label={labels.language}>
-          <Languages size={17} />
-          <select value={language} onChange={(event) => onLanguageChange(event.target.value as Language)}>
-            <option value="uk">UA</option>
-            <option value="en">EN</option>
-          </select>
-        </label>
+        <div className="toolbar__secondaryActions">{secondaryActions}</div>
+        <div className="toolbar__more">
+          <button className="iconButton" onClick={() => setMoreOpen((value) => !value)} aria-label="More actions" aria-expanded={moreOpen}>
+            <MoreHorizontal size={20} />
+          </button>
+          {moreOpen ? (
+            <div className="toolbar__moreMenu" onClick={() => setMoreOpen(false)}>
+              {secondaryActions}
+            </div>
+          ) : null}
+        </div>
       </div>
     </header>
   );

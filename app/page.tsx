@@ -180,8 +180,7 @@ function createEmptyDay(dateKey: string): DayEntry {
 }
 
 function readInitialLanguage(): Language {
-  if (typeof window === "undefined") return "uk";
-  return window.localStorage.getItem(LANGUAGE_KEY) === "en" ? "en" : "uk";
+  return "uk";
 }
 
 export default function Home() {
@@ -212,6 +211,10 @@ export default function Home() {
   useEffect(() => {
     saveMonthData(monthData);
   }, [monthData]);
+
+  useEffect(() => {
+    setLanguage(window.localStorage.getItem(LANGUAGE_KEY) === "en" ? "en" : "uk");
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem(LANGUAGE_KEY, language);

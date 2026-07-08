@@ -60,20 +60,26 @@ export function DayModal({
     onChange({ ...entry, [field]: value });
   }
 
-  function startDrag(event: PointerEvent<HTMLButtonElement>) {
-    if (mode !== "floating") return;
+  function startDrag(event: PointerEvent<HTMLElement>) {
+    const rect = (event.currentTarget.closest(".dayEditor") ?? event.currentTarget).getBoundingClientRect();
+    const startX = mode === "floating" ? floatingPosition.x : rect.left;
+    const startY = mode === "floating" ? floatingPosition.y : rect.top;
+    if (mode !== "floating") {
+      onFloatingPositionChange({ x: startX, y: startY });
+      onModeChange("floating");
+    }
     event.currentTarget.setPointerCapture(event.pointerId);
     dragStart.current = {
       pointerX: event.clientX,
       pointerY: event.clientY,
-      x: floatingPosition.x,
-      y: floatingPosition.y,
+      x: startX,
+      y: startY,
       active: true
     };
   }
 
-  function moveDrag(event: PointerEvent<HTMLButtonElement>) {
-    if (!dragStart.current.active || mode !== "floating") return;
+  function moveDrag(event: PointerEvent<HTMLElement>) {
+    if (!dragStart.current.active) return;
     onFloatingPositionChange({
       x: Math.max(12, dragStart.current.x + event.clientX - dragStart.current.pointerX),
       y: Math.max(12, dragStart.current.y + event.clientY - dragStart.current.pointerY)
@@ -108,6 +114,11 @@ export function DayModal({
     resizeStart.current.active = false;
   }
 
+  function startPanelDrag(event: PointerEvent<HTMLElement>) {
+    if ((event.target as HTMLElement).closest("input, textarea, select, button")) return;
+    startDrag(event);
+  }
+
   return (
     <aside
       className={`dayEditor dayEditor--${mode}`}
@@ -118,6 +129,10 @@ export function DayModal({
       }}
       role="dialog"
       aria-label={labels.dialog}
+      onPointerDown={startPanelDrag}
+      onPointerMove={moveDrag}
+      onPointerUp={stopDrag}
+      onPointerCancel={stopDrag}
     >
       <div className="dayEditor__header">
         <button

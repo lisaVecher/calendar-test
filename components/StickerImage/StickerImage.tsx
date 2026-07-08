@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { PointerEvent, useRef, useState } from "react";
+import { PointerEvent, useEffect, useRef, useState } from "react";
 import { BringToFront, Grip, RotateCw, SendToBack, Trash2 } from "lucide-react";
 import type { StickerItem } from "@/types";
 
@@ -13,6 +13,8 @@ interface StickerImageProps {
 
 export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: StickerImageProps) {
   const [active, setActive] = useState<"move" | "resize" | "rotate" | null>(null);
+  const [editingText, setEditingText] = useState(false);
+  const textRef = useRef<HTMLTextAreaElement>(null);
   const pointerStart = useRef({
     x: 0,
     y: 0,
@@ -22,6 +24,11 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
     height: 0,
     rotation: 0
   });
+
+  useEffect(() => {
+    if (!editingText) return;
+    textRef.current?.focus();
+  }, [editingText]);
 
   function captureStart(event: PointerEvent<HTMLElement>) {
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -37,7 +44,8 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
   }
 
   function startMove(event: PointerEvent<HTMLDivElement>) {
-    if ((event.target as HTMLElement).closest("button, input, textarea, .sticker__resize, .sticker__rotate")) return;
+    if ((event.target as HTMLElement).closest("button, input, .sticker__resize, .sticker__rotate")) return;
+    if (editingText && (event.target as HTMLElement).closest("textarea")) return;
     captureStart(event);
     setActive("move");
   }
@@ -129,7 +137,14 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
         <img src={sticker.src} alt="Стікер" draggable={false} />
       ) : (
         <textarea
+          ref={textRef}
           value={sticker.text}
+          readOnly={!editingText}
+          onDoubleClick={() => setEditingText(true)}
+          onBlur={() => setEditingText(false)}
+          onPointerDown={(event) => {
+            if (editingText) event.stopPropagation();
+          }}
           onChange={(event) => onChange({ ...sticker, text: event.target.value })}
           aria-label="Текстовий стікер"
         />
