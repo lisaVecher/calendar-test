@@ -1,13 +1,27 @@
-"use client";
+﻿"use client";
 
-import { ChevronLeft, ChevronRight, Download, ImagePlus, Palette, Plus, RotateCcw, Type } from "lucide-react";
-import { monthNames } from "@/utils/calendar";
+import { ChevronLeft, ChevronRight, Download, ImagePlus, Languages, Palette, RotateCcw, Type } from "lucide-react";
+import type { Language } from "@/types";
+import { monthNamesByLanguage } from "@/utils/calendar";
 
 interface ToolbarProps {
   month: number;
   year: number;
+  language: Language;
+  labels: {
+    toolbar: string;
+    previousMonth: string;
+    nextMonth: string;
+    photo: string;
+    text: string;
+    style: string;
+    export: string;
+    clear: string;
+    language: string;
+  };
   onMonthChange: (month: number) => void;
   onYearChange: (year: number) => void;
+  onLanguageChange: (language: Language) => void;
   onPrevious: () => void;
   onNext: () => void;
   onAddImage: () => void;
@@ -20,8 +34,11 @@ interface ToolbarProps {
 export function Toolbar({
   month,
   year,
+  language,
+  labels,
   onMonthChange,
   onYearChange,
+  onLanguageChange,
   onPrevious,
   onNext,
   onAddImage,
@@ -31,28 +48,29 @@ export function Toolbar({
   onClear
 }: ToolbarProps) {
   const years = Array.from({ length: 15 }, (_, index) => new Date().getFullYear() - 7 + index);
+  const monthNames = monthNamesByLanguage[language];
 
   return (
-    <header className="toolbar" aria-label="Панель календаря">
+    <header className="toolbar" aria-label={labels.toolbar}>
       <div className="toolbar__date">
-        <button className="iconButton" onClick={onPrevious} aria-label="Попередній місяць">
+        <button className="iconButton" onClick={onPrevious} aria-label={labels.previousMonth}>
           <ChevronLeft size={20} />
         </button>
-        <select value={month} onChange={(event) => onMonthChange(Number(event.target.value))}>
+        <select value={month} onChange={(event) => onMonthChange(Number(event.target.value))} aria-label="Month">
           {monthNames.map((name, index) => (
             <option key={name} value={index}>
               {name}
             </option>
           ))}
         </select>
-        <select value={year} onChange={(event) => onYearChange(Number(event.target.value))}>
+        <select value={year} onChange={(event) => onYearChange(Number(event.target.value))} aria-label="Year">
           {years.map((yearOption) => (
             <option key={yearOption} value={yearOption}>
               {yearOption}
             </option>
           ))}
         </select>
-        <button className="iconButton" onClick={onNext} aria-label="Наступний місяць">
+        <button className="iconButton" onClick={onNext} aria-label={labels.nextMonth}>
           <ChevronRight size={20} />
         </button>
       </div>
@@ -60,24 +78,31 @@ export function Toolbar({
       <div className="toolbar__actions">
         <button onClick={onAddImage}>
           <ImagePlus size={18} />
-          Фото
+          {labels.photo}
         </button>
         <button onClick={onAddText}>
           <Type size={18} />
-          Текст
+          {labels.text}
         </button>
         <button onClick={onToggleSettings}>
           <Palette size={18} />
-          Стиль
+          {labels.style}
         </button>
         <button onClick={onExport}>
           <Download size={18} />
-          Експорт
+          {labels.export}
         </button>
         <button className="dangerButton" onClick={onClear}>
           <RotateCcw size={18} />
-          Очистити
+          {labels.clear}
         </button>
+        <label className="languageControl" aria-label={labels.language}>
+          <Languages size={17} />
+          <select value={language} onChange={(event) => onLanguageChange(event.target.value as Language)}>
+            <option value="uk">UA</option>
+            <option value="en">EN</option>
+          </select>
+        </label>
       </div>
     </header>
   );

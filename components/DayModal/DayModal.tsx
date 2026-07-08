@@ -1,15 +1,40 @@
 ﻿"use client";
 
 import { PointerEvent, useRef } from "react";
-import { GripHorizontal, PanelLeft, PanelRight, Square, X } from "lucide-react";
-import type { DayEditorMode, DayEntry, FloatingPosition } from "@/types";
+import { GripHorizontal, Maximize2, PanelLeft, PanelRight, Square, X } from "lucide-react";
+import type { DayEditorMode, DayEntry, EditorSize, FloatingPosition } from "@/types";
 
 interface DayModalProps {
   entry: DayEntry;
   mode: DayEditorMode;
   floatingPosition: FloatingPosition;
+  editorSize: EditorSize;
+  labels: {
+    dialog: string;
+    day: string;
+    dragWindow: string;
+    dockLeft: string;
+    floating: string;
+    dockRight: string;
+    close: string;
+    shortNote: string;
+    mood: string;
+    noMood: string;
+    moods: Record<string, string>;
+    caloriePlan: string;
+    calorieActual: string;
+    dayColor: string;
+    marker: string;
+    noMarker: string;
+    journal: string;
+    journalPlaceholder: string;
+    deleteDay: string;
+    save: string;
+    resize: string;
+  };
   onModeChange: (mode: DayEditorMode) => void;
   onFloatingPositionChange: (position: FloatingPosition) => void;
+  onEditorSizeChange: (size: EditorSize) => void;
   onChange: (entry: DayEntry) => void;
   onClose: () => void;
   onDelete: () => void;
@@ -19,13 +44,17 @@ export function DayModal({
   entry,
   mode,
   floatingPosition,
+  editorSize,
+  labels,
   onModeChange,
   onFloatingPositionChange,
+  onEditorSizeChange,
   onChange,
   onClose,
   onDelete
 }: DayModalProps) {
   const dragStart = useRef({ pointerX: 0, pointerY: 0, x: 0, y: 0, active: false });
+  const resizeStart = useRef({ pointerX: 0, pointerY: 0, width: 0, height: 0, active: false });
 
   function update(field: keyof DayEntry, value: string) {
     onChange({ ...entry, [field]: value });
@@ -55,12 +84,40 @@ export function DayModal({
     dragStart.current.active = false;
   }
 
+  function startResize(event: PointerEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    resizeStart.current = {
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+      width: editorSize.width,
+      height: editorSize.height,
+      active: true
+    };
+  }
+
+  function moveResize(event: PointerEvent<HTMLButtonElement>) {
+    if (!resizeStart.current.active) return;
+    onEditorSizeChange({
+      width: Math.min(720, Math.max(340, resizeStart.current.width + event.clientX - resizeStart.current.pointerX)),
+      height: Math.min(window.innerHeight - 24, Math.max(420, resizeStart.current.height + event.clientY - resizeStart.current.pointerY))
+    });
+  }
+
+  function stopResize() {
+    resizeStart.current.active = false;
+  }
+
   return (
     <aside
       className={`dayEditor dayEditor--${mode}`}
-      style={mode === "floating" ? { left: floatingPosition.x, top: floatingPosition.y } : undefined}
+      style={{
+        width: editorSize.width,
+        height: editorSize.height,
+        ...(mode === "floating" ? { left: floatingPosition.x, top: floatingPosition.y } : {})
+      }}
       role="dialog"
-      aria-label="Запис дня"
+      aria-label={labels.dialog}
     >
       <div className="dayEditor__header">
         <button
@@ -69,25 +126,25 @@ export function DayModal({
           onPointerMove={moveDrag}
           onPointerUp={stopDrag}
           onPointerCancel={stopDrag}
-          aria-label="Перетягнути вікно"
+          aria-label={labels.dragWindow}
         >
           <GripHorizontal size={18} />
         </button>
-        <div>
-          <span className="eyebrow">День</span>
+        <div className="dayEditor__title">
+          <span className="eyebrow">{labels.day}</span>
           <h2>{entry.dateKey}</h2>
         </div>
         <div className="dayEditor__controls">
-          <button onClick={() => onModeChange("left")} aria-label="Прикріпити зліва">
+          <button onClick={() => onModeChange("left")} aria-label={labels.dockLeft}>
             <PanelLeft size={17} />
           </button>
-          <button onClick={() => onModeChange("floating")} aria-label="Зробити плаваючим">
+          <button onClick={() => onModeChange("floating")} aria-label={labels.floating}>
             <Square size={15} />
           </button>
-          <button onClick={() => onModeChange("right")} aria-label="Прикріпити справа">
+          <button onClick={() => onModeChange("right")} aria-label={labels.dockRight}>
             <PanelRight size={17} />
           </button>
-          <button onClick={onClose} aria-label="Закрити">
+          <button onClick={onClose} aria-label={labels.close}>
             <X size={18} />
           </button>
         </div>
@@ -95,40 +152,36 @@ export function DayModal({
 
       <div className="formGrid">
         <label>
-          Коротка замітка
+          {labels.shortNote}
           <input value={entry.note} onChange={(event) => update("note", event.target.value)} maxLength={80} />
         </label>
         <label>
-          Настрій
+          {labels.mood}
           <select value={entry.mood} onChange={(event) => update("mood", event.target.value)}>
-            <option value="">Без настрою</option>
-            <option value="calm">Спокій</option>
-            <option value="happy">Радість</option>
-            <option value="focus">Фокус</option>
-            <option value="tired">Втома</option>
-            <option value="dreamy">Мрійливість</option>
+            <option value="">{labels.noMood}</option>
+            <option value="calm">{labels.moods.calm}</option>
+            <option value="happy">{labels.moods.happy}</option>
+            <option value="focus">{labels.moods.focus}</option>
+            <option value="tired">{labels.moods.tired}</option>
+            <option value="dreamy">{labels.moods.dreamy}</option>
           </select>
         </label>
         <label>
-          План калорій
+          {labels.caloriePlan}
           <input value={entry.caloriePlan} onChange={(event) => update("caloriePlan", event.target.value)} inputMode="numeric" />
         </label>
         <label>
-          Фактично з'їдено
-          <input
-            value={entry.calorieActual}
-            onChange={(event) => update("calorieActual", event.target.value)}
-            inputMode="numeric"
-          />
+          {labels.calorieActual}
+          <input value={entry.calorieActual} onChange={(event) => update("calorieActual", event.target.value)} inputMode="numeric" />
         </label>
         <label>
-          Колір дня
+          {labels.dayColor}
           <input type="color" value={entry.color || "#ffffff"} onChange={(event) => update("color", event.target.value)} />
         </label>
         <label>
-          Позначка
+          {labels.marker}
           <select value={entry.marker} onChange={(event) => update("marker", event.target.value)}>
-            <option value="">Немає</option>
+            <option value="">{labels.noMarker}</option>
             <option value="★">★</option>
             <option value="♡">♡</option>
             <option value="✓">✓</option>
@@ -139,22 +192,29 @@ export function DayModal({
       </div>
 
       <label className="journalField">
-        Щоденниковий запис
-        <textarea
-          value={entry.journal}
-          onChange={(event) => update("journal", event.target.value)}
-          placeholder="Думки, події, плани..."
-        />
+        {labels.journal}
+        <textarea value={entry.journal} onChange={(event) => update("journal", event.target.value)} placeholder={labels.journalPlaceholder} />
       </label>
 
       <div className="modalActions">
         <button className="dangerButton" onClick={onDelete}>
-          Видалити дані дня
+          {labels.deleteDay}
         </button>
         <button className="primaryButton" onClick={onClose}>
-          Зберегти
+          {labels.save}
         </button>
       </div>
+
+      <button
+        className="dayEditor__resize"
+        onPointerDown={startResize}
+        onPointerMove={moveResize}
+        onPointerUp={stopResize}
+        onPointerCancel={stopResize}
+        aria-label={labels.resize}
+      >
+        <Maximize2 size={15} />
+      </button>
     </aside>
   );
 }

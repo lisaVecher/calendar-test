@@ -1,10 +1,29 @@
-"use client";
+﻿"use client";
 
 import { ChangeEvent } from "react";
 import type { CustomFont, MonthStyle, ThemeStyle } from "@/types";
 
 interface StyleSettingsProps {
   style: MonthStyle;
+  labels: {
+    panel: string;
+    eyebrow: string;
+    title: string;
+    decorativeStyle: string;
+    themes: Record<ThemeStyle, string>;
+    moodboard: string;
+    pageBg: string;
+    calendar: string;
+    lines: string;
+    text: string;
+    monthTitle: string;
+    titleBg: string;
+    titlePadding: string;
+    titleRadius: string;
+    titleFont: string;
+    bodyFont: string;
+    uploadFont: string;
+  };
   onChange: (style: MonthStyle) => void;
 }
 
@@ -93,7 +112,7 @@ function fontLabel(font: string) {
   return font.replace(/"/g, "").split(",")[0];
 }
 
-export function StyleSettings({ style, onChange }: StyleSettingsProps) {
+export function StyleSettings({ style, labels, onChange }: StyleSettingsProps) {
   const customFonts = style.customFonts ?? [];
   const customFontValues = customFonts.map((font) => `"${font.name}", sans-serif`);
   const allTitleFonts = [...titleFonts, ...customFontValues];
@@ -121,50 +140,50 @@ export function StyleSettings({ style, onChange }: StyleSettingsProps) {
   }
 
   return (
-    <aside className="settingsPanel" aria-label="Налаштування стилю">
+    <aside className="settingsPanel" aria-label={labels.panel}>
       <div>
-        <span className="eyebrow">Стиль</span>
-        <h2>Оформлення сторінки</h2>
+        <span className="eyebrow">{labels.eyebrow}</span>
+        <h2>{labels.title}</h2>
       </div>
 
       <label>
-        Декоративний стиль
+        {labels.decorativeStyle}
         <select value={style.theme} onChange={(event) => patch(themes[event.target.value as ThemeStyle])}>
-          <option value="minimal">Мінімальний</option>
-          <option value="pastel">Pastel</option>
-          <option value="darkBlue">Dark blue</option>
-          <option value="vintage">Vintage</option>
-          <option value="fantasy">Fantasy</option>
+          <option value="minimal">{labels.themes.minimal}</option>
+          <option value="pastel">{labels.themes.pastel}</option>
+          <option value="darkBlue">{labels.themes.darkBlue}</option>
+          <option value="vintage">{labels.themes.vintage}</option>
+          <option value="fantasy">{labels.themes.fantasy}</option>
         </select>
       </label>
 
       <div className="swatchGrid">
         <label>
-          Верхній аркуш
+          {labels.moodboard}
           <input type="color" value={style.moodboardBg} onChange={(event) => patch({ moodboardBg: event.target.value })} />
         </label>
         <label>
-          Фон
+          {labels.pageBg}
           <input type="color" value={style.pageBg} onChange={(event) => patch({ pageBg: event.target.value })} />
         </label>
         <label>
-          Календар
+          {labels.calendar}
           <input type="color" value={style.calendarBg} onChange={(event) => patch({ calendarBg: event.target.value })} />
         </label>
         <label>
-          Лінії
+          {labels.lines}
           <input type="color" value={style.lineColor} onChange={(event) => patch({ lineColor: event.target.value })} />
         </label>
         <label>
-          Текст
+          {labels.text}
           <input type="color" value={style.textColor} onChange={(event) => patch({ textColor: event.target.value })} />
         </label>
         <label>
-          Назва місяця
+          {labels.monthTitle}
           <input type="color" value={style.monthTitleColor} onChange={(event) => patch({ monthTitleColor: event.target.value })} />
         </label>
         <label>
-          Фон назви
+          {labels.titleBg}
           <input
             type="color"
             value={style.monthTitleBg === "transparent" ? "#ffffff" : style.monthTitleBg}
@@ -175,7 +194,7 @@ export function StyleSettings({ style, onChange }: StyleSettingsProps) {
 
       <div className="titleShapeGrid">
         <label>
-          Відступ фону назви
+          {labels.titlePadding}
           <input
             type="range"
             min="0"
@@ -185,7 +204,7 @@ export function StyleSettings({ style, onChange }: StyleSettingsProps) {
           />
         </label>
         <label>
-          Заокруглення фону
+          {labels.titleRadius}
           <input
             type="range"
             min="0"
@@ -197,7 +216,7 @@ export function StyleSettings({ style, onChange }: StyleSettingsProps) {
       </div>
 
       <label>
-        Шрифт назви місяця
+        {labels.titleFont}
         <select value={style.titleFont} onChange={(event) => patch({ titleFont: event.target.value })}>
           {allTitleFonts.map((font) => (
             <option key={font} value={font}>
@@ -208,7 +227,7 @@ export function StyleSettings({ style, onChange }: StyleSettingsProps) {
       </label>
 
       <label>
-        Основний шрифт
+        {labels.bodyFont}
         <select value={style.bodyFont} onChange={(event) => patch({ bodyFont: event.target.value })}>
           {allBodyFonts.map((font) => (
             <option key={font} value={font}>
@@ -219,7 +238,7 @@ export function StyleSettings({ style, onChange }: StyleSettingsProps) {
       </label>
 
       <label>
-        Завантажити шрифт
+        {labels.uploadFont}
         <input type="file" accept=".ttf,.otf,.woff,.woff2,font/*" onChange={uploadFont} />
       </label>
     </aside>

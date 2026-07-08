@@ -1,6 +1,8 @@
-export type ThemeStyle = "minimal" | "pastel" | "darkBlue" | "vintage" | "fantasy";
+﻿export type ThemeStyle = "minimal" | "pastel" | "darkBlue" | "vintage" | "fantasy";
 
 export type StickerKind = "image" | "text";
+
+export type Language = "uk" | "en";
 
 export interface StickerItem {
   id: string;
@@ -68,4 +70,9 @@ export type DayEditorMode = "right" | "left" | "floating";
 export interface FloatingPosition {
   x: number;
   y: number;
+}
+
+export interface EditorSize {
+  width: number;
+  height: number;
 }
