@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { PointerEvent, useEffect, useRef, useState } from "react";
-import { BringToFront, Grip, RotateCw, SendToBack, Trash2 } from "lucide-react";
+import { BringToFront, Grip, Palette, RotateCw, SendToBack, Trash2 } from "lucide-react";
 import type { StickerItem } from "@/types";
 
 interface StickerImageProps {
@@ -15,6 +15,7 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
   const [active, setActive] = useState<"move" | "resize" | "rotate" | null>(null);
   const [editingText, setEditingText] = useState(false);
   const textRef = useRef<HTMLTextAreaElement>(null);
+  const lastTap = useRef(0);
   const pointerStart = useRef({
     x: 0,
     y: 0,
@@ -44,7 +45,7 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
   }
 
   function startMove(event: PointerEvent<HTMLDivElement>) {
-    if ((event.target as HTMLElement).closest("button, input, .sticker__resize, .sticker__rotate")) return;
+    if ((event.target as HTMLElement).closest("button, input, label, .sticker__tools, .sticker__resize, .sticker__rotate")) return;
     if (editingText && (event.target as HTMLElement).closest("textarea")) return;
     captureStart(event);
     setActive("move");
@@ -68,7 +69,25 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
     setActive("rotate");
   }
 
-  function stopAction() {
+  function startTextEditing() {
+    if (sticker.kind !== "text") return;
+    setEditingText(true);
+  }
+
+  function stopAction(event?: PointerEvent<HTMLElement>) {
+    if (active === "move" && event && sticker.kind === "text") {
+      const deltaX = event.clientX - pointerStart.current.x;
+      const deltaY = event.clientY - pointerStart.current.y;
+      const isTap = Math.hypot(deltaX, deltaY) < 7;
+      const now = Date.now();
+
+      if (isTap && now - lastTap.current < 360) {
+        startTextEditing();
+        lastTap.current = 0;
+      } else if (isTap) {
+        lastTap.current = now;
+      }
+    }
     setActive(null);
   }
 
@@ -128,6 +147,16 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
         <button onClick={() => onLayerChange(sticker.id, "down")} aria-label="Перемістити шар нижче">
           <SendToBack size={13} />
         </button>
+        {sticker.kind === "text" ? (
+          <label className="sticker__colorButton" aria-label="Колір тексту стікера">
+            <Palette size={13} />
+            <input
+              type="color"
+              value={sticker.color || "#40363a"}
+              onChange={(event) => onChange({ ...sticker, color: event.target.value })}
+            />
+          </label>
+        ) : null}
         <button onClick={() => onDelete(sticker.id)} aria-label="Видалити стікер">
           <Trash2 size={13} />
         </button>
@@ -140,7 +169,7 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
           ref={textRef}
           value={sticker.text}
           readOnly={!editingText}
-          onDoubleClick={() => setEditingText(true)}
+          onDoubleClick={startTextEditing}
           onBlur={() => setEditingText(false)}
           onPointerDown={(event) => {
             if (editingText) event.stopPropagation();
@@ -149,16 +178,6 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
           aria-label="Текстовий стікер"
         />
       )}
-
-      {sticker.kind === "text" ? (
-        <input
-          className="sticker__color"
-          type="color"
-          value={sticker.color || "#40363a"}
-          onChange={(event) => onChange({ ...sticker, color: event.target.value })}
-          aria-label="Колір тексту стікера"
-        />
-      ) : null}
 
       <span className="sticker__rotate" onPointerDown={startRotate} aria-label="Повернути стікер">
         <RotateCw size={13} />

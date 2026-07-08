@@ -341,7 +341,8 @@ button {
   gap: 4px;
 }
 
-.sticker__tools button {
+.sticker__tools button,
+.sticker__colorButton {
   display: grid;
   place-items: center;
   width: 30px;
@@ -354,22 +355,29 @@ button {
   box-shadow: 0 8px 18px rgba(48, 42, 45, 0.12);
 }
 
+.sticker__colorButton {
+  position: relative;
+  overflow: hidden;
+  color: #2f7467;
+  cursor: pointer;
+}
+
+.sticker__colorButton input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .sticker__dragButton,
 .sticker__rotate {
   color: #2f7467;
   cursor: grab;
-}
-
-.sticker__color {
-  position: absolute;
-  left: -10px;
-  bottom: -10px;
-  z-index: 5;
-  width: 28px;
-  min-height: 28px;
-  height: 28px;
-  padding: 2px;
-  border-radius: 50%;
 }
 
 .sticker__rotate {
@@ -767,7 +775,7 @@ textarea {
 
 @media (max-width: 680px) {
   .appShell {
-    padding: 12px;
+    padding: max(12px, env(safe-area-inset-top)) 10px 12px;
   }
 
   .toolbar,
@@ -776,16 +784,40 @@ textarea {
     align-items: stretch;
   }
 
+  .toolbar {
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
   .toolbar__date {
-    grid-template-columns: 42px minmax(0, 1fr) 92px 42px;
+    grid-template-columns: 40px minmax(0, 1fr) 86px 40px;
   }
 
   .toolbar__actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .toolbar__actions > button {
+    padding-inline: 8px;
+  }
+
+  .toolbar__more {
+    display: contents;
+    position: static;
+  }
+
+  .toolbar__moreMenu {
+    position: static;
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 8px;
+    box-shadow: none;
   }
 
   .monthHeader h1 {
-    font-size: clamp(2.7rem, 18vw, 4.9rem);
+    font-size: clamp(2.35rem, 13vw, 3.8rem);
+    line-height: 1;
   }
 
   .moodboard {
@@ -836,11 +868,35 @@ textarea {
 
 @media (max-width: 430px) {
   .toolbar__actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .toolbar__date {
     grid-template-columns: 38px minmax(0, 1fr) 82px 38px;
+  }
+
+  .toolbar button,
+  .toolbar select,
+  .languageControl {
+    min-height: 38px;
+    font-size: 0.95rem;
+  }
+
+  .toolbar__actions > button {
+    gap: 5px;
+  }
+
+  .toolbar__actions > button:not(.iconButton) svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .monthHeader {
+    padding-inline: 2px;
+  }
+
+  .monthHeader h1 {
+    font-size: clamp(2rem, 12vw, 3.1rem);
   }
 
   .dayCell {
