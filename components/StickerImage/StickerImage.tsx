@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { PointerEvent, useRef, useState } from "react";
-import { BringToFront, RotateCw, SendToBack, Trash2 } from "lucide-react";
+import { BringToFront, Grip, RotateCw, SendToBack, Trash2 } from "lucide-react";
 import type { StickerItem } from "@/types";
 
 interface StickerImageProps {
@@ -42,6 +42,12 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
     setActive("move");
   }
 
+  function startHandleMove(event: PointerEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    captureStart(event);
+    setActive("move");
+  }
+
   function startResize(event: PointerEvent<HTMLSpanElement>) {
     event.stopPropagation();
     captureStart(event);
@@ -54,7 +60,11 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
     setActive("rotate");
   }
 
-  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+  function stopAction() {
+    setActive(null);
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLElement>) {
     if (!active) return;
     const deltaX = event.clientX - pointerStart.current.x;
     const deltaY = event.clientY - pointerStart.current.y;
@@ -90,10 +100,20 @@ export function StickerImage({ sticker, onChange, onDelete, onLayerChange }: Sti
       }}
       onPointerDown={startMove}
       onPointerMove={handlePointerMove}
-      onPointerUp={() => setActive(null)}
-      onPointerCancel={() => setActive(null)}
+      onPointerUp={stopAction}
+      onPointerCancel={stopAction}
     >
       <div className="sticker__tools" aria-label="Керування стікером">
+        <button
+          className="sticker__dragButton"
+          onPointerDown={startHandleMove}
+          onPointerMove={handlePointerMove}
+          onPointerUp={stopAction}
+          onPointerCancel={stopAction}
+          aria-label="Перетягнути стікер"
+        >
+          <Grip size={14} />
+        </button>
         <button onClick={() => onLayerChange(sticker.id, "up")} aria-label="Перемістити шар вище">
           <BringToFront size={13} />
         </button>

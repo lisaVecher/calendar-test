@@ -62,3 +62,10 @@ export interface CalendarCell {
   isCurrentMonth: boolean;
   isToday: boolean;
 }
+
+export type DayEditorMode = "right" | "left" | "floating";
+
+export interface FloatingPosition {
+  x: number;
+  y: number;
+}

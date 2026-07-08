@@ -7,7 +7,7 @@ import { Moodboard } from "@/components/Moodboard/Moodboard";
 import { StickerImage } from "@/components/StickerImage/StickerImage";
 import { StyleSettings } from "@/components/StyleSettings/StyleSettings";
 import { Toolbar } from "@/components/Toolbar/Toolbar";
-import type { DayEntry, MonthData, StickerItem } from "@/types";
+import type { DayEditorMode, DayEntry, FloatingPosition, MonthData, StickerItem } from "@/types";
 import { buildMonthGrid, getMonthKey, monthNames } from "@/utils/calendar";
 import { clearMonthData, createDefaultMonthData, exportAllMonths, loadMonthData, saveMonthData } from "@/utils/storage";
 
@@ -32,6 +32,8 @@ export default function Home() {
   const [monthData, setMonthData] = useState<MonthData>(() => createDefaultMonthData(monthKey));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [dayEditorMode, setDayEditorMode] = useState<DayEditorMode>("right");
+  const [dayEditorPosition, setDayEditorPosition] = useState<FloatingPosition>({ x: 820, y: 90 });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const cells = useMemo(() => buildMonthGrid(year, month), [year, month]);
@@ -177,7 +179,7 @@ export default function Home() {
 
       <input ref={fileInputRef} className="hiddenInput" type="file" accept="image/*" onChange={handleImageUpload} />
 
-      <div className="journalLayout">
+      <div className={`journalLayout ${showSettings ? "journalLayout--withSettings" : ""}`}>
         <div className="monthStack">
           <section className="monthHeader" aria-label="Назва місяця">
             <p>{year}</p>
@@ -218,6 +220,10 @@ export default function Home() {
       {selectedEntry ? (
         <DayModal
           entry={selectedEntry}
+          mode={dayEditorMode}
+          floatingPosition={dayEditorPosition}
+          onModeChange={setDayEditorMode}
+          onFloatingPositionChange={setDayEditorPosition}
           onChange={(entry) =>
             updateMonthData((data) => ({ ...data, days: { ...data.days, [entry.dateKey]: entry } }))
           }
